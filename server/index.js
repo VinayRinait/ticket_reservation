@@ -1,89 +1,24 @@
-const express = require("express");
-const mongoose = require("mongoose");
+const express=require("express")
+const {connection}=require("./db")
 
-const app = express();
+require("dotenv").config()
+const cors=require("cors")
+const { seatRouter } = require("./routes/seat.routes")
+const app=express()
+app.use(express.json())
+app.use(cors())
 
-mongoose
-  .connect(
-    "mongodb+srv://vinayrinait:vinay@cluster0.qcgcqfp.mongodb.net/trainbookin?retryWrites=true&w=majority",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+app.get("/",(req,res)=>{
+    res.send("Home Page")
+})
+
+app.use("/seat",seatRouter)
+
+app.listen(process.env.Port,async()=>{
+    try {
+        await connection 
+        console.log("conneted")
+    } catch (error) {
+        console.log(error)
     }
-  )
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
-  });
-
-const seatSchema = new mongoose.Schema({
-  seatNumber: { type: String, required: true },
-  reserved: { type: Boolean, default: false },
-});
-
-const Seat = mongoose.model("Seat", seatSchema);
-
-app.get("/seats", async (req, res) => {
-  try {
-    const seats = await Seat.find();
-    res.json(seats);
-  } catch (error) {
-    res.status(500).json({ error: "An error occurred while retrieving seats" });
-  }
-});
-
-app.post("/seats/reserve", async (req, res) => {
-  const { count } = req.body;
-
-  try {
-    const seats = await Seat.find({ reserved: false }).sort("seatNumber");
-    const n = seats.length;
-
-    if (n < count) {
-      return res.status(400).json({ error: "Not enough available seats" });
-    }
-
-    let start = 0;
-    let end = count - 1;
-    let windowReserved = false;
-
-    while (end < n) {
-      let isValidWindow = true;
-
-      for (let i = start; i <= end; i++) {
-        if (seats[i].seatNumber + 1 !== seats[i + 1].seatNumber) {
-          isValidWindow = false;
-          start = i + 1;
-          end = start + count - 1;
-          break;
-        }
-      }
-
-      if (isValidWindow) {
-        // Reserve the seats within the valid window
-        await Seat.updateMany(
-          { _id: { $in: seats.slice(start, end + 1).map((seat) => seat._id) } },
-          { reserved: true }
-        );
-
-        windowReserved = true;
-        break;
-      }
-    }
-
-    if (windowReserved) {
-      res.json({ message: "Seats reserved successfully" });
-    } else {
-      res.status(400).json({ error: "Not enough available seats in one row" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "An error occurred while reserving seats" });
-  }
-});
-
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+})
