@@ -21,7 +21,7 @@ const SeatReservation = () => {
     const fetchSeats = async () => {
       try {
         const response = await axios.get(
-          "https://kind-teal-fossa-veil.cyclic.app/seat"
+          "https://bus-ticket.onrender.com/seat"
         );
         const sortedSeats = response.data.seats.sort(
           (a, b) => a.seatNumber - b.seatNumber
@@ -38,7 +38,7 @@ const SeatReservation = () => {
   const reserveSeats = async () => {
     try {
       const response = await axios.post(
-        "https://kind-teal-fossa-veil.cyclic.app/seat/reserve",
+        "https://bus-ticket.onrender.com/seat/reserve",
         {
           numSeats: parseInt(numSeats),
         }
@@ -47,7 +47,7 @@ const SeatReservation = () => {
 
       // Refresh the seat data after reservation
       const seatResponse = await axios.get(
-        "https://kind-teal-fossa-veil.cyclic.app/seat"
+        "https://bus-ticket.onrender.com/seat"
       );
       const sortedSeats = seatResponse.data.seats.sort(
         (a, b) => a.seatNumber - b.seatNumber
@@ -61,12 +61,10 @@ const SeatReservation = () => {
 
   const resetSeats = async () => {
     try {
-      await axios.put("https://kind-teal-fossa-veil.cyclic.app/seat/reset");
+      await axios.put("https://bus-ticket.onrender.com/seat/reset");
 
       // Refresh the seat data after resetting
-      const response = await axios.get(
-        "https://kind-teal-fossa-veil.cyclic.app/seat"
-      );
+      const response = await axios.get("https://bus-ticket.onrender.com/seat");
       const sortedSeats = response.data.seats.sort(
         (a, b) => a.seatNumber - b.seatNumber
       );
